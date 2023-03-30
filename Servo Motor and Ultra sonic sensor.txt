@@ -1,0 +1,71 @@
+import RPi.GPIO as GPIO
+import time
+
+servo_pin = 18
+
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(servo_pin, GPIO.OUT)
+
+servo_pwm = GPIO.PWM(servo_pin, 50)  # 50 Hz (20 ms period)
+
+# Position the servo at 0 degrees (minimum pulse width)
+servo_pwm.start(2.5)
+
+try:
+    while True:
+        # Position the servo at 90 degrees (neutral position)
+        servo_pwm.ChangeDutyCycle(7.5)
+        time.sleep(1)
+        
+        # Position the servo at 180 degrees (maximum pulse width)
+        servo_pwm.ChangeDutyCycle(12.5)
+        time.sleep(1)
+
+except KeyboardInterrupt:
+    servo_pwm.stop()
+    GPIO.cleanup()
+
+
+
+### Ultra sonic code
+
+import RPi.GPIO as GPIO
+import time
+
+TRIG_PIN = 23  # GPIO23
+ECHO_PIN = 24  # GPIO24
+
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(TRIG_PIN, GPIO.OUT)
+GPIO.setup(ECHO_PIN, GPIO.IN)
+
+def measure_distance():
+    GPIO.output(TRIG_PIN, GPIO.LOW)
+    time.sleep(0.5)
+    
+    GPIO.output(TRIG_PIN, GPIO.HIGH)
+    time.sleep(0.00001)
+    GPIO.output(TRIG_PIN, GPIO.LOW)
+    
+    pulse_start = time.time()
+    while GPIO.input(ECHO_PIN) == 0:
+        pulse_start = time.time()
+        
+    pulse_end = time.time()
+    while GPIO.input(ECHO_PIN) == 1:
+        pulse_end = time.time()
+        
+    pulse_duration = pulse_end - pulse_start
+    distance = pulse_duration * 17150
+    distance = round(distance, 2)
+    
+    return distance
+
+try:
+    while True:
+        distance = measure_distance()
+        print("Distance: {} cm".format(distance))
+        time.sleep(1)
+        
+except KeyboardInterrupt:
+    GPIO.cleanup()
